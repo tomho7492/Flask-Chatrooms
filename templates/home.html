@@ -1,0 +1,96 @@
+{% extends "layout.html" %}
+
+
+{% block head %}
+        <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+            <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                
+
+                // Connect to websocket
+                var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+                
+                socket.on('connect', ()=>{
+                    console.log("test");
+                    button = document.querySelector('#channelsubmit');
+                    buttonJoin = document.querySelector('#channelJoin');
+                    buttonJoin.onclick = () =>{
+                        const channelName = document.querySelector('#channelName').value
+                        window.location.href = `/channels/${channelName}`
+                    };
+                    button.onclick = () =>{
+                        console.log("inside onsubmit function")
+                        const channelName = document.querySelector('#channelName').value
+                        socket.emit('create channel', {'channelName':channelName});
+                    };  
+                });
+               // load_channels();
+
+                //when a new channel is created
+                socket.on("channelcreation", data =>{
+                    temp = JSON.stringify(data);
+                    channel = JSON.parse(temp);
+                    channelName = channel["channelName"];
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.href=`/channels/${channelName}`;
+                    a.textContent=channelName;
+                    li.appendChild(a);
+                    li.className = "list-group-item"
+                    document.querySelector('#channelsList').appendChild(li);
+
+            });
+            });
+            
+            /*
+            //intiially load channels
+            function load_channels(){
+            fetch('/channels123', {
+                method: 'GET'
+            }).then(res => res.json())
+            .then(data => {
+                    testData = data;
+                    channels = JSON.stringify(testData);
+                    list = JSON.parse(channels)
+                    list["channelName"].forEach(item => {
+                        const li = document.createElement('li');
+                        const a = document.createElement('a');
+                        a.href=`/channels/${item}`;
+                        a.textContent=item;
+                        li.appendChild(a);
+                        document.querySelector('#channelsList').appendChild(li);
+                    });
+                   
+                });
+            }
+            */
+        </script>
+    <title>Messenger</title>
+
+    {% endblock %}
+
+
+    {% block body %}
+     
+       
+    
+     
+    
+     <div id="channels">
+        <center><h1>Available Channels</h1>
+        
+        <input type="text" placeholder="channel name" name="channelName" id="channelName">
+        <button class="btn btn-primary" id="channelsubmit">Create</button> 
+        <button class="btn btn-primary" id="channelJoin">Join</button> 
+        </center>
+
+        <ul class="list-group" id="channelsList">
+        
+            {% for channel in channels %}
+            <li class = "list-group-item"><a href="/channels/{{channel}}">{{channel}}</a> </li>
+            {% endfor %}
+            
+        </ul>
+     </div>
+    {% endblock %}
+

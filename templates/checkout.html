@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        {% for order in Orders %}
+        {{order}}
+        {% endfor %}
+        <form action="{% url 'checkout' %}" methods="POST">
+            <input type="submit">
+        </form>
+    </head>
+
+
+</html>

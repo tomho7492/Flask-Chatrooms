@@ -1,0 +1,105 @@
+{% extends "layout.html" %}
+{% block head %}
+        <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+        <script>
+        document.addEventListener('DOMContentLoaded', () => {
+        
+
+
+            //connect to websocket
+             var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+             
+             socket.on('connect', ()=>{
+                 socket.emit("joined");
+               const sendmsgbtn = document.querySelector('#sendmsgbtn');
+
+               document.querySelector('#messageInput').addEventListener("keydown", event => {
+                if (event.key == "Enter") { 
+                    sendmsgbtn.click();
+                }
+                });
+
+               sendmsgbtn.onclick = () => {
+                   console.log("inside btn on click");
+                const msg = document.querySelector("#messageInput").value;
+                
+                socket.emit("message receive", {"message":msg});
+                console.log("after emit");
+                document.querySelector("#messageInput").value = "";
+               };
+             });
+
+
+             //receive data from websocket
+             socket.on("message sent", data =>{
+                 temp = JSON.stringify(data);
+                 message = (JSON.parse(temp)["message"]["message"]);
+                 user = (JSON.parse(temp)["user"]);
+                 const li = document.createElement("h6");
+                 const card = document.createElement("div");
+                 card.className = "card";
+                 const cardbody = document.createElement("div");
+                 cardbody.className = "card-body";
+                 
+
+                 timestamp = new Date();
+                 time = timestamp.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+                 li.textContent = `[${time}] ${user}: ${message}`;
+                 li.className = "card-subtitle mb-2 text-muted text-left";
+                 card.appendChild(cardbody);
+                 cardbody.appendChild(li);
+                 
+                 document.querySelector("#messages").appendChild(card);
+                 
+             });
+
+             socket.on('status', data => {
+                 msg = JSON.stringify(data);
+                 msg = JSON.parse(msg);
+                 msg = msg["msg"]
+                
+                 const li = document.createElement("h6");
+                 const card = document.createElement("div");
+                 card.className = "card";
+                 const cardbody = document.createElement("div");
+                 cardbody.className = "card-body";
+                 li.className = "card-subtitle mb-2 text-muted text-left";
+                 li.textContent = msg;
+                 card.appendChild(cardbody);
+                 cardbody.appendChild(li);
+
+
+                document.querySelector("#messages").appendChild(card);
+             });
+           
+         
+            });
+
+        </script>
+<title>Channel</title>
+<center><h1 id="channelName">{{channelName}}</h1></center>
+{% endblock %}
+
+{% block body %}
+
+
+<ul class="list-group" id="messages">
+ {% for message in messages %}
+ 
+
+ <div class="card">
+    <div class="card-body">
+        <h6 class="card-subtitle mb-2 text-muted text-left">{{message}}</h6>
+
+    </div>
+</div>
+
+
+ {% endfor %}
+</ul>
+<div class="fixed-bottom">
+ 
+<input class="form-control form-control-lg bg-light text-black" type="text" placeholder="send a message" id="messageInput">
+<button style="display: none;" id="sendmsgbtn">send message</button>
+</div>
+{% endblock %}
